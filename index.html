@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#eaf4ff" />
+  <title>豆包输入法 · 开放日体验</title>
+  <style>
+    :root {
+      --ink: #101827;
+      --muted: #a9adb5;
+      --blue: #4d7fff;
+      --blue-hover: #3e6ff0;
+      --line: rgba(29, 67, 113, .09);
+      --card-shadow: 0 14px 34px rgba(64, 119, 179, .14);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #eaf4ff;
+      overflow-x: hidden;
+    }
+
+    button { font: inherit; }
+
+    .background {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 38% 17%, rgba(220, 234, 255, .86) 0, transparent 45%),
+        linear-gradient(145deg, #e8f2ff 0%, #f2f9ff 53%, #dfedff 100%);
+    }
+
+    .wave {
+      position: absolute;
+      left: -12%;
+      width: 128%;
+      height: 34%;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.72);
+      transform: rotate(7deg);
+      filter: blur(.2px);
+    }
+
+    .wave.w1 {
+      bottom: 0;
+      box-shadow: 0 -30px 48px rgba(255,255,255,.5);
+      background: rgba(255,255,255,.13);
+    }
+
+    .wave.w2 {
+      bottom: -13%;
+      transform: rotate(-8deg);
+      background: rgba(213, 232, 255, .28);
+      border-color: rgba(255,255,255,.55);
+    }
+
+    .wave.w3 {
+      left: 44%;
+      bottom: -19%;
+      width: 75%;
+      transform: rotate(-28deg);
+      border-color: rgba(255,255,255,.54);
+      background: rgba(255,255,255,.1);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      padding: 0 28px 24px;
+    }
+
+    .header {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .01em;
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      overflow: hidden;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(45, 83, 130, .18);
+    }
+
+    .avatar img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .content {
+      width: min(860px, 100%);
+      margin: 18px auto 0;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      text-align: center;
+      font-size: clamp(28px, 3.2vw, 34px);
+      line-height: 1.25;
+      font-weight: 760;
+      letter-spacing: -.04em;
+    }
+
+    .editor-card {
+      position: relative;
+      height: clamp(380px, calc(100vh - 225px), 520px);
+      overflow: visible;
+      border: 1px solid rgba(255,255,255,.95);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: var(--card-shadow);
+    }
+
+    .toolbar {
+      height: 47px;
+      padding: 0 19px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #1e2229;
+      user-select: none;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tool-separator {
+      width: 1px;
+      height: 22px;
+      margin: 0 2px;
+      background: #eceef2;
+    }
+
+    .tool {
+      width: 20px;
+      height: 28px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 5px;
+      color: #24272e;
+      background: transparent;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background .14s ease, color .14s ease;
+    }
+
+    .tool:hover, .tool.active {
+      color: var(--blue);
+      background: #eef3ff;
+    }
+
+    .tool.text-type {
+      color: var(--blue);
+      font-size: 19px;
+      font-family: Georgia, serif;
+      font-weight: 700;
+    }
+
+    .tool.small { font-size: 14px; }
+    .tool.bold { font-weight: 760; }
+    .tool.italic { font-family: Georgia, serif; font-style: italic; }
+    .tool.underline { text-decoration: underline; text-underline-offset: 3px; }
+    .tool.strike { text-decoration: line-through; }
+
+    .chevron {
+      width: 8px;
+      height: 8px;
+      margin-left: -6px;
+      border-right: 1.5px solid #9da1a8;
+      border-bottom: 1.5px solid #9da1a8;
+      transform: rotate(45deg) translateY(-2px);
+    }
+
+    .list-icon, .checkbox-icon, .align-icon, .bubble-icon {
+      position: relative;
+      width: 16px;
+      height: 16px;
+    }
+
+    .list-icon::before {
+      content: "≡";
+      position: absolute;
+      inset: -3px 0 0;
+      font-size: 20px;
+      line-height: 16px;
+    }
+
+    .checkbox-icon {
+      border: 1.5px solid currentColor;
+      border-radius: 2px;
+    }
+
+    .checkbox-icon::after {
+      content: "✓";
+      position: absolute;
+      left: 2px;
+      top: -3px;
+      font-size: 13px;
+    }
+
+    .align-icon::before, .align-icon::after {
+      content: "";
+      position: absolute;
+      left: 1px;
+      height: 1.5px;
+      background: currentColor;
+    }
+
+    .align-icon::before {
+      top: 3px;
+      width: 13px;
+      box-shadow: 0 4px 0 currentColor;
+    }
+
+    .align-icon::after { top: 11px; width: 8px; }
+
+    .bubble-icon {
+      width: 14px;
+      height: 11px;
+      border: 1.5px solid currentColor;
+      border-radius: 2px;
+    }
+
+    .bubble-icon::after {
+      content: "";
+      position: absolute;
+      left: 3px;
+      bottom: -4px;
+      width: 4px;
+      height: 4px;
+      border-left: 1.5px solid currentColor;
+      transform: skew(-23deg);
+    }
+
+    .editor {
+      height: calc(100% - 73px);
+      margin: 0 21px;
+      padding: 2px 4px 10px 7px;
+      overflow-y: auto;
+      outline: none;
+      color: #212631;
+      font-size: 18px;
+      line-height: 1.72;
+      word-break: break-word;
+      caret-color: #4d7fff;
+      scrollbar-width: thin;
+      scrollbar-color: #d9e2ef transparent;
+    }
+
+    .editor:empty::before {
+      content: attr(data-placeholder);
+      color: #c7c9ce;
+      pointer-events: none;
+    }
+
+    .status {
+      position: absolute;
+      right: 17px;
+      bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #c5c7cc;
+      font-size: 10px;
+    }
+
+    .save-state {
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+
+    .save-state.visible { opacity: 1; }
+
+    .reset-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .reset {
+      height: 34px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--blue);
+      box-shadow: 0 6px 14px rgba(65, 111, 234, .18);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .reset:hover {
+      background: var(--blue-hover);
+      transform: translateY(-1px);
+    }
+
+    .reset-icon {
+      font-size: 17px;
+      line-height: 1;
+      font-weight: 400;
+    }
+
+    .emoji-panel {
+      position: absolute;
+      right: 15px;
+      top: 42px;
+      z-index: 8;
+      width: 258px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      border: 1px solid #e7ebf3;
+      border-radius: 12px;
+      background: rgba(255,255,255,.98);
+      box-shadow: 0 14px 38px rgba(46, 76, 113, .17);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-5px);
+      transition: .15s ease;
+    }
+
+    .emoji-panel.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .emoji {
+      height: 31px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      font-size: 19px;
+      cursor: pointer;
+    }
+
+    .emoji:hover { background: #eef3ff; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 20;
+      padding: 9px 14px;
+      border-radius: 7px;
+      color: #fff;
+      background: rgba(20, 28, 41, .88);
+      font-size: 12px;
+      transform: translate(-50%, 10px);
+      opacity: 0;
+      transition: .18s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 680px) {
+      .page { padding: 0 14px 22px; }
+      .header { height: 58px; }
+      .content { margin-top: 26px; }
+      h1 { margin-bottom: 22px; font-size: 28px; }
+      .editor-card {
+        height: min(58vh, 470px);
+        min-height: 340px;
+      }
+      .toolbar {
+        padding: 0 13px;
+        gap: 7px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .toolbar::-webkit-scrollbar { display: none; }
+      .tool-group { gap: 6px; }
+      .tool-separator { flex: 0 0 auto; }
+      .editor { margin: 0 16px; font-size: 17px; }
+      .reset { height: 38px; padding: 0 19px; font-size: 12px; }
+      .emoji-panel {
+        position: fixed;
+        top: auto;
+        left: 12px;
+        right: 12px;
+        bottom: calc(18px + env(safe-area-inset-bottom));
+        width: auto;
+      }
+    }
+
+    @media (max-height: 560px) and (min-width: 681px) {
+      .header { height: 52px; }
+      .content { margin-top: 9px; }
+      h1 { margin-bottom: 9px; font-size: 27px; }
+      .editor-card { height: calc(100vh - 178px); min-height: 290px; }
+      .reset-wrap { margin-top: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="background" aria-hidden="true">
+    <div class="wave w1"></div>
+    <div class="wave w2"></div>
+    <div class="wave w3"></div>
+  </div>
+
+  <main class="page">
+    <header class="header">
+      <div class="brand">
+        <div class="avatar" aria-hidden="true">
+          <img src="doubao-input-icon.png" alt="" />
+        </div>
+        <span>豆包输入法</span>
+      </div>
+    </header>
+
+    <section class="content">
+      <h1>高效输入，享受输出</h1>
+
+      <div class="editor-card">
+        <div class="toolbar" aria-label="文本编辑工具栏">
+          <div class="tool-group">
+            <button class="tool text-type" type="button" data-command="formatBlock" data-value="p" title="正文">T</button>
+            <span class="chevron" aria-hidden="true"></span>
+          </div>
+          <div class="tool-separator"></div>
+          <div class="tool-group">
+            <button class="tool" type="button" data-command="insertUnorderedList" title="项目符号"><span class="list-icon"></span></button>
+            <span class="chevron" aria-hidden="true"></span>
+          </div>
+          <div class="tool-separator"></div>
+          <div class="tool-group">
+            <button class="tool bold" type="button" data-command="bold" title="加粗">B</button>
+            <button class="tool strike" type="button" data-command="strikeThrough" title="删除线">S</button>
+            <button class="tool italic" type="button" data-command="italic" title="斜体">I</button>
+            <button class="tool underline" type="button" data-command="underline" title="下划线">U</button>
+            <button class="tool small" type="button" id="codeBtn" title="行内代码">&lt;/&gt;</button>
+            <div class="tool-group">
+              <button class="tool small" type="button" id="colorBtn" title="字体颜色">A</button>
+              <span class="chevron" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="tool-separator"></div>
+          <div class="tool-group">
+            <button class="tool" type="button" id="todoBtn" title="待办"><span class="checkbox-icon"></span></button>
+            <button class="tool" type="button" data-command="justifyLeft" title="左对齐"><span class="align-icon"></span></button>
+            <button class="tool" type="button" id="emojiTrigger" title="插入表情" aria-expanded="false"><span class="bubble-icon"></span></button>
+          </div>
+        </div>
+
+        <div id="editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="true" data-placeholder="请在这里输入文字…"></div>
+
+        <div class="status">
+          <span id="saveState" class="save-state">已保存</span>
+          <span><span id="charCount">0</span>/3000字</span>
+        </div>
+        <div id="emojiPanel" class="emoji-panel" role="dialog" aria-label="常用表情"></div>
+      </div>
+
+      <div class="reset-wrap">
+        <button id="resetBtn" class="reset" type="button">
+          <span class="reset-icon" aria-hidden="true">⟲</span>
+          <span>重新体验</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const editor = document.querySelector('#editor');
+    const charCount = document.querySelector('#charCount');
+    const saveState = document.querySelector('#saveState');
+    const resetBtn = document.querySelector('#resetBtn');
+    const emojiTrigger = document.querySelector('#emojiTrigger');
+    const emojiPanel = document.querySelector('#emojiPanel');
+    const codeBtn = document.querySelector('#codeBtn');
+    const colorBtn = document.querySelector('#colorBtn');
+    const todoBtn = document.querySelector('#todoBtn');
+    const toast = document.querySelector('#toast');
+    const storageKey = 'doubao-open-day-rich-note-v2';
+    const emojis = ['😀','😄','🥰','😍','🤩','🥳','😊','😉','😎','🤗','🤔','😮','👍','👏','🙌','💪','❤️','💜','✨','🎉','🔥','💡','🌈','☀️','🍀','🚀','💯','🐶'];
+    let saveTimer;
+    let toastTimer;
+    let lastRange;
+
+    function plainLength() {
+      return [...(editor.innerText || '')].length;
+    }
+
+    function updateCount() {
+      const length = plainLength();
+      if (length > 3000) {
+        const selection = window.getSelection();
+        editor.innerText = [...editor.innerText].slice(0, 3000).join('');
+        selection.selectAllChildren(editor);
+        selection.collapseToEnd();
+      }
+      charCount.textContent = Math.min(plainLength(), 3000);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function save() {
+      localStorage.setItem(storageKey, editor.innerHTML);
+      saveState.textContent = '已保存';
+      saveState.classList.add('visible');
+      setTimeout(() => saveState.classList.remove('visible'), 1000);
+    }
+
+    function runCommand(command, value = null) {
+      editor.focus();
+      document.execCommand(command, false, value);
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function rememberSelection() {
+      const selection = window.getSelection();
+      if (selection.rangeCount && editor.contains(selection.anchorNode)) {
+        lastRange = selection.getRangeAt(0).cloneRange();
+      }
+    }
+
+    function restoreSelection() {
+      editor.focus();
+      if (!lastRange) return;
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(lastRange);
+    }
+
+    document.querySelectorAll('[data-command]').forEach((button) => {
+      button.addEventListener('mousedown', (event) => event.preventDefault());
+      button.addEventListener('click', () => {
+        runCommand(button.dataset.command, button.dataset.value || null);
+        button.classList.toggle('active');
+      });
+    });
+
+    codeBtn.addEventListener('mousedown', (event) => event.preventDefault());
+    codeBtn.addEventListener('click', () => {
+      restoreSelection();
+      const selection = window.getSelection();
+      const text = selection.toString();
+      if (text) {
+        document.execCommand('insertHTML', false, `<code style="padding:2px 5px;border-radius:4px;background:#f0f3f8;color:#315ca8;font-family:monospace">${text}</code>`);
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+      } else {
+        showToast('请先选中要设为代码的文字');
+      }
+    });
+
+    colorBtn.addEventListener('mousedown', (event) => event.preventDefault());
+    colorBtn.addEventListener('click', () => runCommand('foreColor', '#4d7fff'));
+
+    todoBtn.addEventListener('mousedown', (event) => event.preventDefault());
+    todoBtn.addEventListener('click', () => {
+      restoreSelection();
+      document.execCommand('insertHTML', false, '<div>☐&nbsp; </div>');
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    emojis.forEach((emoji) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'emoji';
+      button.textContent = emoji;
+      button.setAttribute('aria-label', `插入表情 ${emoji}`);
+      button.addEventListener('mousedown', (event) => event.preventDefault());
+      button.addEventListener('click', () => {
+        restoreSelection();
+        document.execCommand('insertText', false, emoji);
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+        emojiPanel.classList.remove('open');
+        emojiTrigger.setAttribute('aria-expanded', 'false');
+      });
+      emojiPanel.appendChild(button);
+    });
+
+    editor.innerHTML = localStorage.getItem(storageKey) || '';
+    updateCount();
+
+    editor.addEventListener('keyup', rememberSelection);
+    editor.addEventListener('mouseup', rememberSelection);
+    editor.addEventListener('focus', rememberSelection);
+    editor.addEventListener('input', () => {
+      updateCount();
+      rememberSelection();
+      saveState.textContent = '保存中…';
+      saveState.classList.add('visible');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 400);
+    });
+
+    editor.addEventListener('paste', (event) => {
+      event.preventDefault();
+      const text = event.clipboardData.getData('text/plain');
+      const remaining = 3000 - plainLength();
+      document.execCommand('insertText', false, [...text].slice(0, remaining).join(''));
+    });
+
+    emojiTrigger.addEventListener('mousedown', (event) => event.preventDefault());
+    emojiTrigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      restoreSelection();
+      const open = emojiPanel.classList.toggle('open');
+      emojiTrigger.setAttribute('aria-expanded', String(open));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!emojiPanel.contains(event.target) && !emojiTrigger.contains(event.target)) {
+        emojiPanel.classList.remove('open');
+        emojiTrigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      editor.innerHTML = '';
+      localStorage.removeItem(storageKey);
+      updateCount();
+      editor.focus();
+      showToast('已清空，可以重新体验');
+    });
+
+    window.addEventListener('load', () => {
+      editor.focus();
+      rememberSelection();
+    });
+  </script>
+</body>
+</html>
