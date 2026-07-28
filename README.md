@@ -15,7 +15,7 @@
 ├── index.html                 # PC 页面
 ├── mobile/
 │   └── index.html             # 移动端 H5 页面
-├── doubao-input-icon.png      # 公共图标资源
+├── doubao-input-icon.png      # 原始图标资源，供设计和二次开发使用
 ├── Dockerfile                 # 容器镜像构建文件
 ├── nginx.conf                 # Nginx 配置
 └── .dockerignore
@@ -101,6 +101,12 @@ cp -R mobile /usr/share/nginx/html/
 - 页面不会向服务器上传输入内容。
 - 点击“重新体验”会清除当前页面对应的本地输入记录。
 - PC 与 H5 使用不同的本地存储键，互不影响。
+
+## 图标资源说明
+
+PC 与 H5 页面已经将豆包输入法图标以 Base64 Data URI 形式内嵌到 HTML，因此部署运行时不依赖图片文件路径。即使部署平台只发布 `index.html` 和 `mobile/index.html`，图标也能正常显示。
+
+仓库仍保留 `doubao-input-icon.png` 原始资源，方便前端同学后续替换、压缩或用于其他页面。若改回独立静态资源引用，需要保证图片随页面一起发布，并注意站点子路径和 CDN 前缀。
 
 ## 浏览器要求
 
