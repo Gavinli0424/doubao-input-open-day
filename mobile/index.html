@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#e7f2ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>豆包输入法 · 移动端体验</title>
+  <style>
+    :root {
+      --blue: #4d7fff;
+      --ink: #2f333a;
+      --muted: #c8c9cd;
+      --line: #f0f1f3;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    body {
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button, textarea { font: inherit; }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background: #fff;
+    }
+
+    .header {
+      min-height: 82px;
+      padding:
+        max(20px, env(safe-area-inset-top))
+        28px
+        17px;
+      display: flex;
+      align-items: flex-end;
+      background:
+        radial-gradient(circle at 24% -30%, rgba(255,255,255,.65), transparent 48%),
+        linear-gradient(135deg, #e5f1ff 0%, #edf7ff 100%);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: .01em;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+      overflow: hidden;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(57, 101, 151, .13);
+    }
+
+    .brand-icon img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .input-area {
+      position: relative;
+      min-height: 0;
+      background: #fff;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      padding: 16px 28px 20px;
+      resize: none;
+      overflow-y: auto;
+      border: 0;
+      outline: 0;
+      color: #222831;
+      background: transparent;
+      font-size: clamp(25px, 7.4vw, 34px);
+      font-weight: 400;
+      line-height: 1.55;
+      letter-spacing: -.025em;
+      caret-color: var(--blue);
+      scrollbar-width: thin;
+      scrollbar-color: #dce5f1 transparent;
+    }
+
+    textarea::placeholder {
+      color: #c9cacc;
+      opacity: 1;
+    }
+
+    .footer {
+      position: relative;
+      min-height: 156px;
+      padding: 18px 20px max(32px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--line);
+      background: rgba(255,255,255,.98);
+    }
+
+    .counter {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      color: #c9cacf;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .reset {
+      position: absolute;
+      left: 50%;
+      bottom: max(32px, env(safe-area-inset-bottom));
+      height: 58px;
+      min-width: 212px;
+      padding: 0 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 14px;
+      color: #fff;
+      background: var(--blue);
+      box-shadow: 0 8px 20px rgba(77, 127, 255, .2);
+      font-size: 20px;
+      font-weight: 650;
+      transform: translateX(-50%);
+      cursor: pointer;
+      transition: background .15s ease, transform .12s ease;
+    }
+
+    .reset:active {
+      background: #3e70ee;
+      transform: translateX(-50%) scale(.98);
+    }
+
+    .reset-icon {
+      font-size: 31px;
+      line-height: 1;
+      font-weight: 300;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(116px, calc(96px + env(safe-area-inset-bottom)));
+      z-index: 10;
+      padding: 9px 15px;
+      border-radius: 8px;
+      color: #fff;
+      background: rgba(22, 28, 39, .86);
+      font-size: 13px;
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      transition: .18s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-height: 650px) {
+      .header {
+        min-height: 68px;
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: 12px;
+      }
+
+      .brand-icon { width: 34px; height: 34px; }
+      .brand { font-size: 16px; }
+      textarea { padding-top: 12px; font-size: 25px; }
+      .footer { min-height: 128px; }
+      .reset { bottom: max(20px, env(safe-area-inset-bottom)); height: 52px; }
+    }
+
+    @media (min-width: 700px) {
+      body {
+        display: grid;
+        place-items: center;
+        background: #dfe9f5;
+      }
+
+      .app {
+        width: min(100%, 480px);
+        height: min(100dvh, 900px);
+        min-height: 0;
+        box-shadow: 0 18px 60px rgba(42, 76, 118, .16);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <img src="../doubao-input-icon.png" alt="" />
+        </div>
+        <span>豆包输入法</span>
+      </div>
+    </header>
+
+    <section class="input-area" aria-label="文字输入区域">
+      <textarea id="editor" maxlength="3000" autofocus aria-label="请输入文字" placeholder="请在这里输入文字…"></textarea>
+    </section>
+
+    <footer class="footer">
+      <div class="counter"><span id="charCount">0</span>/3000字</div>
+      <button id="resetBtn" class="reset" type="button">
+        <span class="reset-icon" aria-hidden="true">⟲</span>
+        <span>重新体验</span>
+      </button>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const editor = document.querySelector('#editor');
+    const charCount = document.querySelector('#charCount');
+    const resetBtn = document.querySelector('#resetBtn');
+    const toast = document.querySelector('#toast');
+    const storageKey = 'doubao-open-day-mobile-note';
+    let saveTimer;
+    let toastTimer;
+
+    function updateCount() {
+      charCount.textContent = [...editor.value].length;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1400);
+    }
+
+    function save() {
+      localStorage.setItem(storageKey, editor.value);
+    }
+
+    editor.value = localStorage.getItem(storageKey) || '';
+    updateCount();
+
+    editor.addEventListener('input', () => {
+      updateCount();
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 300);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      editor.value = '';
+      localStorage.removeItem(storageKey);
+      updateCount();
+      editor.focus();
+      showToast('已清空，可以重新体验');
+    });
+
+    window.addEventListener('load', () => editor.focus());
+  </script>
+</body>
+</html>
